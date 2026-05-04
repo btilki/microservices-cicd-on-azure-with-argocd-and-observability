@@ -21,8 +21,8 @@
 
 ## Checklist
 
-- [ ] `CODEOWNERS` matches real reviewers.
-- [ ] Direct push to `main` is blocked the way you want.
+- [x] `CODEOWNERS` matches real reviewers.
+- [x] Direct push to `main` is blocked the way you want.
 
 ---
 

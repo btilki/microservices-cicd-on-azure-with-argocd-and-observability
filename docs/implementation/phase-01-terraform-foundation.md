@@ -10,7 +10,11 @@
 
 > **Use:** Terminal (`az`, `terraform`, `kubectl`), **Azure Portal** (optional checks), domain registrar for NS delegation. Install Azure CLI and Terraform if missing.
 
-1. **Azure login & subscription**
+1. **Azure see account, login & subscription**
+   ```bash
+   az account show
+   ```
+   
    ```bash
    az login
    az account set --subscription "<SUBSCRIPTION_ID_OR_NAME>"
