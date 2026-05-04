@@ -1,3 +1,7 @@
+data "azurerm_kubernetes_service_versions" "region" {
+  location = var.location
+}
+
 locals {
   tags = merge(
     var.tags,
@@ -5,6 +9,8 @@ locals {
       owner = var.owner_email
     }
   )
+
+  kubernetes_version = coalesce(var.kubernetes_version, data.azurerm_kubernetes_service_versions.region.default_version)
 }
 
 resource "azurerm_resource_group" "shared" {
@@ -52,7 +58,7 @@ module "aks" {
   resource_group_name        = azurerm_resource_group.shared.name
   cluster_name               = "aks-boutique-weu"
   dns_prefix                 = "aksboutiqueweu"
-  kubernetes_version         = var.kubernetes_version
+  kubernetes_version         = local.kubernetes_version
   aks_subnet_id              = module.network.aks_subnet_id
   log_analytics_workspace_id = module.log_analytics.workspace_id
   api_server_authorized_ip_ranges = var.api_server_authorized_ip_ranges

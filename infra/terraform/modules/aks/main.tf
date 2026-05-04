@@ -14,7 +14,7 @@ resource "azurerm_kubernetes_cluster" "main" {
     vnet_subnet_id               = var.aks_subnet_id
     orchestrator_version         = var.kubernetes_version
     type                         = "VirtualMachineScaleSets"
-    auto_scaling_enabled         = true
+    enable_auto_scaling          = true
     min_count                    = var.system_pool.min_count
     max_count                    = var.system_pool.max_count
     only_critical_addons_enabled = true
@@ -56,7 +56,7 @@ resource "azurerm_kubernetes_cluster" "main" {
     }
   }
 
-  automatic_upgrade_channel = "patch"
+  automatic_channel_upgrade = "patch"
 
   lifecycle {
     ignore_changes = [
@@ -71,14 +71,13 @@ resource "azurerm_kubernetes_cluster_node_pool" "npdev" {
   vm_size               = var.npdev.vm_size
   vnet_subnet_id        = var.aks_subnet_id
   orchestrator_version  = var.kubernetes_version
-  auto_scaling_enabled  = true
+  enable_auto_scaling   = true
   min_count             = var.npdev.min_count
   max_count             = var.npdev.max_count
   node_labels = {
     env = "dev"
   }
   node_taints                 = ["env=dev:NoSchedule"]
-  temporary_name_for_rotation = "npdvtmp"
   upgrade_settings {
     max_surge = "10%"
   }
@@ -90,14 +89,13 @@ resource "azurerm_kubernetes_cluster_node_pool" "npstg" {
   vm_size               = var.npstg.vm_size
   vnet_subnet_id        = var.aks_subnet_id
   orchestrator_version  = var.kubernetes_version
-  auto_scaling_enabled  = true
+  enable_auto_scaling   = true
   min_count             = var.npstg.min_count
   max_count             = var.npstg.max_count
   node_labels = {
     env = "stage"
   }
   node_taints                 = ["env=stage:NoSchedule"]
-  temporary_name_for_rotation = "npsttmp"
   upgrade_settings {
     max_surge = "10%"
   }
@@ -109,7 +107,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "npprod" {
   vm_size               = var.npprod.vm_size
   vnet_subnet_id        = var.aks_subnet_id
   orchestrator_version  = var.kubernetes_version
-  auto_scaling_enabled  = true
+  enable_auto_scaling   = true
   min_count             = var.npprod.min_count
   max_count             = var.npprod.max_count
   zones                 = ["1", "2", "3"]
@@ -117,7 +115,6 @@ resource "azurerm_kubernetes_cluster_node_pool" "npprod" {
     env = "prod"
   }
   node_taints                 = ["env=prod:NoSchedule"]
-  temporary_name_for_rotation = "npprtmp"
   upgrade_settings {
     max_surge = "10%"
   }

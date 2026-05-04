@@ -34,6 +34,11 @@ output "aks_cluster_name" {
   value = module.aks.cluster_name
 }
 
+output "aks_kubernetes_version" {
+  value       = local.kubernetes_version
+  description = "Control plane version used for this cluster (explicit var or regional default)"
+}
+
 output "aks_oidc_issuer_url" {
   value = module.aks.oidc_issuer_url
 }

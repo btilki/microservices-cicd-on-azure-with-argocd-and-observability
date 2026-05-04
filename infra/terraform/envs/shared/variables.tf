@@ -10,8 +10,9 @@ variable "dns_zone_name" {
 
 variable "kubernetes_version" {
   type        = string
-  description = "Pin to a supported patch version in West Europe"
-  default     = "1.29.7"
+  description = "Pin to a supported patch version in your Azure region (see `az aks get-versions --location <region>`). Leave null to use the region default from Terraform."
+  default     = null
+  nullable    = true
 }
 
 variable "api_server_authorized_ip_ranges" {
