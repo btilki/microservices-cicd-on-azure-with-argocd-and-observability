@@ -66,6 +66,7 @@ resource "azurerm_kubernetes_cluster" "main" {
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "npdev" {
+  count                 = var.create_workload_node_pools ? 1 : 0
   name                  = "npdev"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.main.id
   vm_size               = var.npdev.vm_size
@@ -84,6 +85,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "npdev" {
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "npstg" {
+  count                 = var.create_workload_node_pools ? 1 : 0
   name                  = "npstg"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.main.id
   vm_size               = var.npstg.vm_size
@@ -102,6 +104,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "npstg" {
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "npprod" {
+  count                 = var.create_workload_node_pools ? 1 : 0
   name                  = "npprod"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.main.id
   vm_size               = var.npprod.vm_size
@@ -110,7 +113,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "npprod" {
   enable_auto_scaling   = true
   min_count             = var.npprod.min_count
   max_count             = var.npprod.max_count
-  zones                 = ["1", "2", "3"]
+  zones                 = var.npprod.zones
   node_labels = {
     env = "prod"
   }

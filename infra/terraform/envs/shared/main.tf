@@ -59,6 +59,8 @@ module "aks" {
   cluster_name               = "aks-boutique-weu"
   dns_prefix                 = "aksboutiqueweu"
   kubernetes_version         = local.kubernetes_version
+  create_workload_node_pools   = var.aks_create_workload_node_pools
+  system_pool                  = var.aks_system_pool
   aks_subnet_id              = module.network.aks_subnet_id
   log_analytics_workspace_id = module.log_analytics.workspace_id
   api_server_authorized_ip_ranges = var.api_server_authorized_ip_ranges

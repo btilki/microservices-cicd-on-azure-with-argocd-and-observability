@@ -42,10 +42,16 @@ variable "system_pool" {
     max_count    = number
   })
   default = {
-    vm_size   = "Standard_D2s_v5"
-    min_count = 2
+    vm_size   = "Standard_B2s"
+    min_count = 1
     max_count = 3
   }
+}
+
+variable "create_workload_node_pools" {
+  type        = bool
+  description = "If false, only the default/system pool is created (saves regional vCPU quota while bootstrapping)."
+  default     = true
 }
 
 variable "npdev" {
@@ -68,7 +74,7 @@ variable "npstg" {
     max_count = number
   })
   default = {
-    vm_size   = "Standard_D2s_v5"
+    vm_size   = "Standard_B2s"
     min_count = 1
     max_count = 3
   }
@@ -79,10 +85,11 @@ variable "npprod" {
     vm_size   = string
     min_count = number
     max_count = number
+    zones     = optional(list(string))
   })
   default = {
-    vm_size   = "Standard_D2s_v5"
-    min_count = 2
+    vm_size   = "Standard_B2s"
+    min_count = 1
     max_count = 4
   }
 }

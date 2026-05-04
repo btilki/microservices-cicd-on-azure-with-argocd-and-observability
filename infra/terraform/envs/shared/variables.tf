@@ -15,6 +15,26 @@ variable "kubernetes_version" {
   nullable    = true
 }
 
+variable "aks_create_workload_node_pools" {
+  type        = bool
+  description = "Create dev/stage/prod user node pools on the shared cluster. Disable for first bootstrap if your subscription has low regional vCPU quota."
+  default     = false
+}
+
+variable "aks_system_pool" {
+  type = object({
+    vm_size   = string
+    min_count = number
+    max_count = number
+  })
+  description = "VM SKU/counts for the AKS system pool. Prefer a SKU family you have quota for (check Azure Portal → Subscriptions → Usage + quotas)."
+  default = {
+    vm_size   = "Standard_B2s"
+    min_count = 1
+    max_count = 3
+  }
+}
+
 variable "api_server_authorized_ip_ranges" {
   type        = list(string)
   default     = []
