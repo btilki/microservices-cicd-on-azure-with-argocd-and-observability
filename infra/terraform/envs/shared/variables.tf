@@ -17,8 +17,28 @@ variable "kubernetes_version" {
 
 variable "aks_create_workload_node_pools" {
   type        = bool
-  description = "Create dev/stage/prod user node pools on the shared cluster. Disable for first bootstrap if your subscription has low regional vCPU quota."
+  description = "Create dev/stage/prod node pools (npdev, npstg, npprod) with env taints. Disable for first bootstrap if your subscription has low regional vCPU quota."
   default     = false
+}
+
+variable "aks_create_user_node_pool" {
+  type        = bool
+  description = "Create an untainted user node pool for platform charts (ingress, external-dns, monitoring) and workloads without env taints. Recommended when only the system pool exists."
+  default     = true
+}
+
+variable "aks_user_pool" {
+  type = object({
+    vm_size   = string
+    min_count = number
+    max_count = number
+  })
+  description = "General-purpose user node pool (no taints; label workload=general)."
+  default = {
+    vm_size   = "Standard_B2s"
+    min_count = 1
+    max_count = 3
+  }
 }
 
 variable "aks_system_pool" {

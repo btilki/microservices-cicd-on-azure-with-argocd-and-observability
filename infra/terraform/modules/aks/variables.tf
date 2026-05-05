@@ -50,8 +50,27 @@ variable "system_pool" {
 
 variable "create_workload_node_pools" {
   type        = bool
-  description = "If false, only the default/system pool is created (saves regional vCPU quota while bootstrapping)."
+  description = "If true, create dev/stage/prod node pools with env taints (npdev, npstg, npprod). Independent of create_user_node_pool."
   default     = true
+}
+
+variable "create_user_node_pool" {
+  type        = bool
+  description = "If true, create a general-purpose user node pool without taints (schedules ingress, external-dns, prometheus, and unscoped workloads)."
+  default     = true
+}
+
+variable "user_pool" {
+  type = object({
+    vm_size   = string
+    min_count = number
+    max_count = number
+  })
+  default = {
+    vm_size   = "Standard_B2s"
+    min_count = 1
+    max_count = 3
+  }
 }
 
 variable "npdev" {

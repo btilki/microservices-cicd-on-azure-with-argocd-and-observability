@@ -65,6 +65,24 @@ resource "azurerm_kubernetes_cluster" "main" {
   }
 }
 
+resource "azurerm_kubernetes_cluster_node_pool" "user" {
+  count                 = var.create_user_node_pool ? 1 : 0
+  name                  = "user"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.main.id
+  vm_size               = var.user_pool.vm_size
+  vnet_subnet_id        = var.aks_subnet_id
+  orchestrator_version  = var.kubernetes_version
+  enable_auto_scaling   = true
+  min_count             = var.user_pool.min_count
+  max_count             = var.user_pool.max_count
+  node_labels = {
+    workload = "general"
+  }
+  upgrade_settings {
+    max_surge = "10%"
+  }
+}
+
 resource "azurerm_kubernetes_cluster_node_pool" "npdev" {
   count                 = var.create_workload_node_pools ? 1 : 0
   name                  = "npdev"

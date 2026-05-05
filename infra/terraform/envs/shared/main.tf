@@ -60,6 +60,8 @@ module "aks" {
   dns_prefix                 = "aksboutiqueweu"
   kubernetes_version         = local.kubernetes_version
   create_workload_node_pools   = var.aks_create_workload_node_pools
+  create_user_node_pool        = var.aks_create_user_node_pool
+  user_pool                    = var.aks_user_pool
   system_pool                  = var.aks_system_pool
   aks_subnet_id              = module.network.aks_subnet_id
   log_analytics_workspace_id = module.log_analytics.workspace_id
