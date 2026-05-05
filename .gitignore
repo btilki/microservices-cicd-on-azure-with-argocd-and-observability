@@ -1,3 +1,7 @@
+# Gitignore for Terraform projects, including local backend configs and IDE files
+docs/
+myfile.doc
+
 # Terraform local/cache files
 **/.terraform/*
 *.tfstate
