@@ -28,14 +28,194 @@
 
 ---
 
-## Checklist
+## Detailed step-by-step guide (practical)
 
-- [ ] `kubectl get pods -A`: platform namespaces healthy.
-- [ ] Test `Ingress` gets an external IP / hostname; DNS record appears if external-dns is on.
-- [ ] Argo CD UI login works; repo connection test succeeds.
+Follow these steps in order. Do not continue to the next component until the current one is healthy.
 
----
+### 0) Pre-checks (before any install)
 
-## Your notes / extra steps
+1. Ensure your cluster context is correct:
+   ```bash
+   kubectl config current-context
+   kubectl get nodes -o wide
+   ```
+2. Confirm Helm is ready:
+   ```bash
+   helm version
+   ```
+3. Create namespaces up front:
+   ```bash
+   kubectl create ns ingress-nginx --dry-run=client -o yaml | kubectl apply -f -
+   kubectl create ns cert-manager --dry-run=client -o yaml | kubectl apply -f -
+   kubectl create ns external-dns --dry-run=client -o yaml | kubectl apply -f -
+   kubectl create ns monitoring --dry-run=client -o yaml | kubectl apply -f -
+   kubectl create ns argocd --dry-run=client -o yaml | kubectl apply -f -
+   ```
+4. Check DNS zone is delegated to Azure NS from Phase 1:
+   ```bash
+   nslookup -type=ns <your-domain>
+   ```
 
--
+### 1) CSI Secrets Store (driver + Azure provider)
+
+1. Add repos:
+   ```bash
+   helm repo add csi-secrets-store https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts
+   helm repo add csi-azure https://azure.github.io/secrets-store-csi-driver-provider-azure/charts
+   helm repo update
+   ```
+2. Install driver:
+   ```bash
+   helm upgrade --install csi-secrets-store csi-secrets-store/secrets-store-csi-driver \
+     -n kube-system
+   ```
+3. Install Azure provider:
+   ```bash
+   helm upgrade --install csi-azure csi-azure/csi-secrets-store-provider-azure \
+     -n kube-system
+   ```
+4. Verify:
+   ```bash
+   kubectl get pods -n kube-system | grep -E "secrets-store|csi"
+   ```
+
+### 2) NGINX Ingress with static public IP
+
+1. Add repo:
+   ```bash
+   helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+   helm repo update
+   ```
+2. Get the static IP created in Phase 1:
+   ```bash
+   cd infra/terraform/envs/shared
+   terraform output ingress_public_ip
+   ```
+3. Install NGINX using that IP:
+   ```bash
+   helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
+     -n ingress-nginx \
+     --set controller.service.loadBalancerIP="<INGRESS_PUBLIC_IP>"
+   ```
+4. Verify external IP:
+   ```bash
+   kubectl get svc -n ingress-nginx ingress-nginx-controller -w
+   ```
+
+### 3) cert-manager + Let's Encrypt (DNS-01 with Azure DNS)
+
+1. Add repo and install:
+   ```bash
+   helm repo add jetstack https://charts.jetstack.io
+   helm repo update
+   helm upgrade --install cert-manager jetstack/cert-manager \
+     -n cert-manager \
+     --set crds.enabled=true
+   ```
+2. Wait until ready:
+   ```bash
+   kubectl rollout status deploy/cert-manager -n cert-manager
+   kubectl rollout status deploy/cert-manager-webhook -n cert-manager
+   kubectl rollout status deploy/cert-manager-cainjector -n cert-manager
+   ```
+3. Create a `ClusterIssuer` manifest for Azure DNS solver (workload identity principal needs DNS Zone Contributor on your zone), then apply:
+   ```bash
+   kubectl apply -f <your-clusterissuer-file>.yaml
+   ```
+4. Verify issuer:
+   ```bash
+   kubectl get clusterissuer
+   ```
+
+### 4) external-dns
+
+1. Add repo:
+   ```bash
+   helm repo add external-dns https://kubernetes-sigs.github.io/external-dns
+   helm repo update
+   ```
+2. Install with your domain filter:
+   ```bash
+   helm upgrade --install external-dns external-dns/external-dns \
+     -n external-dns \
+     --set provider=azure \
+     --set txtOwnerId=boutique \
+     --set domainFilters[0]="<your-domain>"
+   ```
+3. Verify:
+   ```bash
+   kubectl logs deploy/external-dns -n external-dns --tail=100
+   ```
+
+### 5) kube-prometheus-stack
+
+1. Add repo and install:
+   ```bash
+   helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+   helm repo update
+   helm upgrade --install kube-prometheus-stack prometheus-community/kube-prometheus-stack \
+     -n monitoring
+   ```
+2. Verify:
+   ```bash
+   kubectl get pods -n monitoring
+   kubectl get pvc -n monitoring
+   ```
+3. If PVCs stay Pending, check default StorageClass:
+   ```bash
+   kubectl get sc
+   ```
+
+### 6) Argo CD
+
+1. Add repo and install:
+   ```bash
+   helm repo add argo https://argoproj.github.io/argo-helm
+   helm repo update
+   helm upgrade --install argocd argo/argo-cd -n argocd
+   ```
+2. Get initial admin password:
+   ```bash
+   argocd admin initial-password -n argocd
+   ```
+3. Temporary local access:
+   ```bash
+   kubectl port-forward svc/argocd-server -n argocd 8080:443
+   ```
+4. Login via UI at `https://localhost:8080`.
+
+### 7) Connect repo to Argo CD
+
+1. In Argo CD UI: `Settings -> Repositories -> Connect Repo`.
+2. Add your GitHub/Azure DevOps repository credentials (PAT/SSH).
+3. Run connection test until it succeeds.
+
+### 8) Bootstrap root app
+
+1. Create bootstrap manifest:
+   ```bash
+   cp gitops/bootstrap/root-app.yaml.example gitops/bootstrap/root-app.yaml
+   ```
+2. Edit `repoURL`, `targetRevision`, and path values.
+3. Apply:
+   ```bash
+   kubectl apply -n argocd -f gitops/bootstrap/root-app.yaml
+   ```
+4. Verify app tree in Argo CD UI and sync status.
+
+### 9) Final validation
+
+Run these checks:
+
+```bash
+kubectl get pods -A
+kubectl get ingress -A
+kubectl get certificate -A
+kubectl get applications -n argocd
+```
+
+Success criteria:
+- No CrashLoopBackOff in platform namespaces.
+- Ingress has external address.
+- Certificates become `Ready=True`.
+- Argo CD app sync succeeds.

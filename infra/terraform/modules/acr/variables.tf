@@ -17,8 +17,9 @@ variable "registry_name" {
 }
 
 variable "sku" {
-  type    = string
-  default = "Standard"
+  type        = string
+  default     = "Standard"
+  description = "Basic/Standard/Premium. Disabling public network access requires Premium."
 }
 
 variable "public_network_access_enabled" {

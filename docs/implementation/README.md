@@ -14,5 +14,6 @@ One file per phase. Each guide is **action-oriented**: do the **Implementation**
 | 7 | [Prod environment](phase-07-prod-environment.md) |
 | 8 | [Hardening](phase-08-hardening.md) |
 | 9 | [Polish](phase-09-polish.md) |
+| 10 | [Destroy infrastructure](phase-10-destroy-infrastructure.md) |
 
-Order: **0 → 1 → 2 → … → 9**.
+Build order: **0 → 1 → 2 → … → 9**. Teardown (optional): **10** — run only when you want to remove cloud resources; destroy in the order given in that guide (**reverse** of apply).

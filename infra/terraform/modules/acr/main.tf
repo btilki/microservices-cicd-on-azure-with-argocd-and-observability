@@ -1,15 +1,20 @@
+locals {
+  # Azure only allows turning off public access on Premium SKUs; when private-only, force Premium.
+  acr_sku = var.public_network_access_enabled ? var.sku : "Premium"
+}
+
 resource "azurerm_container_registry" "main" {
   name                = var.registry_name
   resource_group_name = var.resource_group_name
   location            = var.location
-  sku                 = var.sku
+  sku                 = local.acr_sku
   admin_enabled       = false
   tags                = var.tags
 
   public_network_access_enabled = var.public_network_access_enabled
 
   dynamic "georeplications" {
-    for_each = var.sku == "Premium" ? var.georeplications : []
+    for_each = local.acr_sku == "Premium" ? var.georeplications : []
     content {
       location = georeplications.value
     }
