@@ -12,6 +12,11 @@ pr:
   branches:
     include:
       - main
+  paths:
+    include:
+      - apps/frontend/*
+      - charts/frontend/*
+      - pipelines/ci/frontend.yml
 
 pool:
   vmImage: ubuntu-latest
