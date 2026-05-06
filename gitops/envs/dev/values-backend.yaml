@@ -1,6 +1,6 @@
 image:
   repository: acrboutiquedevweu.azurecr.io/backend
-  digest: "sha256:REPLACE_WITH_DEV_DIGEST"
+  digest: "sha256:0acc6f061bbaf019077470d83c8997993a5852117edbcd2a928ae29eb38dc5d7"
 
 ingress:
   host: api-dev.boutique.biroltilki.art
