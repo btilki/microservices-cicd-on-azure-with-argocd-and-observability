@@ -25,11 +25,6 @@ ingress:
 
 resources: {}
 
-nodeSelector:
-  env: dev
+nodeSelector: {}
 
-tolerations:
-  - key: "env"
-    operator: "Equal"
-    value: "dev"
-    effect: "NoSchedule"
+tolerations: []
