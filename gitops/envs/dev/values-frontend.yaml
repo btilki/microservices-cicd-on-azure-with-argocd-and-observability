@@ -6,3 +6,9 @@ ingress:
   host: dev.boutique.biroltilki.art
   tls:
     secretName: frontend-dev-tls
+
+# Schedule workloads to the user node pool (system pool is tainted CriticalAddonsOnly).
+nodeSelector:
+  kubernetes.azure.com/mode: user
+
+tolerations: []
