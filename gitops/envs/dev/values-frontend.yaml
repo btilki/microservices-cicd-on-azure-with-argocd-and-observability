@@ -1,0 +1,8 @@
+image:
+  repository: btilkiazuredevacr.azurecr.io/frontend
+  digest: "sha256:replace-with-ci-produced-digest"
+
+ingress:
+  host: dev.boutique.biroltilki.art
+  tls:
+    secretName: frontend-dev-tls

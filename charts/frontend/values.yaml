@@ -1,0 +1,35 @@
+replicaCount: 2
+
+image:
+  repository: changeme.azurecr.io/frontend
+  digest: "sha256:replace-me"
+  pullPolicy: IfNotPresent
+
+serviceAccount:
+  create: true
+  name: ""
+
+service:
+  port: 80
+  targetPort: 8080
+
+ingress:
+  enabled: true
+  className: nginx
+  host: dev.boutique.example.com
+  tls:
+    enabled: true
+    secretName: frontend-dev-tls
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+
+resources: {}
+
+nodeSelector:
+  env: dev
+
+tolerations:
+  - key: "env"
+    operator: "Equal"
+    value: "dev"
+    effect: "NoSchedule"
