@@ -122,7 +122,8 @@ stages:
               BRANCH="ci/frontend-digest-$(Build.BuildId)"
               git checkout -b "$BRANCH"
               git add $(GITOPS_VALUES_FILE)
-              git commit -m "chore(frontend): update dev image digest"
+              git -c user.name="azure-pipelines[bot]" -c user.email="azure-pipelines[bot]@users.noreply.github.com" \
+                commit -m "chore(frontend): update dev image digest"
               git push origin "$BRANCH"
 
               PAYLOAD="$(cat <<EOF
