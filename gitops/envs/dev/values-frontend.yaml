@@ -1,5 +1,5 @@
 image:
-  repository: btilkiazuredevacr.azurecr.io/frontend
+  repository: acrboutiquedevweu.azurecr.io/frontend
   digest: "sha256:replace-with-ci-produced-digest"
 
 ingress:

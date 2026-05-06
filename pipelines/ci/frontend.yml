@@ -18,10 +18,13 @@ pool:
 
 variables:
   SERVICE_NAME: frontend
-  DEV_ACR_NAME: btilkiazuredevacr
-  DEV_ACR_LOGIN_SERVER: btilkiazuredevacr.azurecr.io
+  DEV_ACR_NAME: acrboutiquedevweu
+  DEV_ACR_LOGIN_SERVER: acrboutiquedevweu.azurecr.io
   IMAGE_REPOSITORY: frontend
   GITOPS_VALUES_FILE: gitops/envs/dev/values-frontend.yaml
+  ACR_SERVICE_CONNECTION: dev-acr-service-connection
+  AZURE_SUBSCRIPTION_CONNECTION: dev-azure-service-connection
+  GITHUB_REPOSITORY: btilki/microservices-cicd-on-azure-with-argocd-and-observability
 
 stages:
   - stage: BuildScanPush
@@ -40,7 +43,7 @@ stages:
           - task: Docker@2
             displayName: Build and push image
             inputs:
-              containerRegistry: dev-acr-service-connection
+              containerRegistry: $(ACR_SERVICE_CONNECTION)
               repository: $(IMAGE_REPOSITORY)
               command: buildAndPush
               Dockerfile: apps/frontend/Dockerfile
@@ -48,44 +51,89 @@ stages:
               tags: |
                 $(Build.SourceVersion)
 
-          - script: |
-              set -euo pipefail
-              IMAGE_REF="$(DEV_ACR_LOGIN_SERVER)/$(IMAGE_REPOSITORY):$(Build.SourceVersion)"
-              DIGEST="$(az acr repository show-manifests --name $(DEV_ACR_NAME) --repository $(IMAGE_REPOSITORY) --query "[?contains(tags, '$(Build.SourceVersion)')].digest | [0]" -o tsv)"
-              if [ -z "$DIGEST" ]; then
-                echo "Digest not found for $IMAGE_REF"
-                exit 1
-              fi
-              echo "Resolved digest: $DIGEST"
-              echo "##vso[task.setvariable variable=IMAGE_DIGEST;isOutput=true]$DIGEST"
+          - task: AzureCLI@2
             displayName: Resolve pushed image digest
             name: ResolveDigest
+            inputs:
+              azureSubscription: $(AZURE_SUBSCRIPTION_CONNECTION)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                set -euo pipefail
+                IMAGE_REF="$(DEV_ACR_LOGIN_SERVER)/$(IMAGE_REPOSITORY):$(Build.SourceVersion)"
+                DIGEST="$(az acr repository show-manifests --name $(DEV_ACR_NAME) --repository $(IMAGE_REPOSITORY) --query "[?contains(tags, '$(Build.SourceVersion)')].digest | [0]" -o tsv)"
+                if [ -z "$DIGEST" ]; then
+                  echo "Digest not found for $IMAGE_REF"
+                  exit 1
+                fi
+                echo "Resolved digest: $DIGEST"
+                echo "##vso[task.setvariable variable=IMAGE_DIGEST;isOutput=true]$DIGEST"
+
+          - script: |
+              set -euo pipefail
+              IMAGE_REF="$(DEV_ACR_LOGIN_SERVER)/$(IMAGE_REPOSITORY)@$(ResolveDigest.IMAGE_DIGEST)"
+              docker run --rm aquasec/trivy:0.53.0 image --severity HIGH,CRITICAL --exit-code 1 --ignore-unfixed "$IMAGE_REF"
+            displayName: Trivy scan
 
           - script: |
               set -euo pipefail
               python3 - <<'PY'
+              import re
               from pathlib import Path
+
               path = Path("$(GITOPS_VALUES_FILE)")
               content = path.read_text()
-              old = "sha256:replace-with-ci-produced-digest"
               new = "$(ResolveDigest.IMAGE_DIGEST)"
-              if old in content:
-                  path.write_text(content.replace(old, new))
-              else:
-                  import re
-                  path.write_text(re.sub(r'digest:\s*\"?sha256:[a-zA-Z0-9]+\"?', f'digest: "{new}"', content))
+              updated = re.sub(r'digest:\s*"?sha256:[a-fA-F0-9]+"?', f'digest: "{new}"', content)
+              if updated == content:
+                  raise SystemExit("Unable to locate digest field in values file.")
+              path.write_text(updated)
               print(f"Updated {path} with digest {new}")
               PY
             displayName: Update GitOps values digest
 
           - script: |
               set -euo pipefail
-              git config user.email "buildagent@local"
-              git config user.name "buildagent"
+              if git diff --quiet -- "$(GITOPS_VALUES_FILE)"; then
+                echo "Digest is unchanged. Skipping branch push and PR creation."
+                exit 0
+              fi
               BRANCH="ci/frontend-digest-$(Build.BuildId)"
               git checkout -b "$BRANCH"
               git add $(GITOPS_VALUES_FILE)
               git commit -m "chore(frontend): update dev image digest"
-              echo "TODO: push branch and open PR (Azure Repos REST API or GitHub CLI)."
-              echo "Branch prepared: $BRANCH"
-            displayName: Prepare GitOps PR branch (placeholder)
+              git push origin "$BRANCH"
+
+              PAYLOAD="$(cat <<EOF
+              {
+                "title": "chore(frontend): update dev image digest",
+                "head": "$BRANCH",
+                "base": "main",
+                "body": "Automated digest update for frontend image: $(ResolveDigest.IMAGE_DIGEST)"
+              }
+              EOF
+              )"
+
+              RESPONSE="$(curl -sS -X POST \
+                -H "Accept: application/vnd.github+json" \
+                -H "Authorization: Bearer $(GITHUB_TOKEN)" \
+                https://api.github.com/repos/$(GITHUB_REPOSITORY)/pulls \
+                -d "$PAYLOAD")"
+
+              PR_URL="$(RESPONSE_JSON="$RESPONSE" python3 - <<'PY'
+              import json, os
+              data = json.loads(os.environ["RESPONSE_JSON"])
+              print(data.get("html_url", ""))
+              PY
+              )"
+
+              if [ -z "$PR_URL" ]; then
+                echo "Failed to create PR. API response:"
+                echo "$RESPONSE"
+                exit 1
+              fi
+
+              echo "Created PR: $PR_URL"
+            displayName: Push branch and open GitOps PR
+            env:
+              GITHUB_TOKEN: $(GITHUB_TOKEN)
