@@ -238,6 +238,13 @@ Use this checklist if your setup matches this repository and Azure subscription.
    kubectl get endpoints -n ingress-nginx ingress-nginx-controller
    az network lb rule list -g MC_rg-boutique-shared-weu_aks-boutique-weu_westeurope --lb-name kubernetes -o table
    ```
+   - If `curl` to both HTTP and HTTPS still times out while pods/certs are healthy, set Azure LB probe path on ingress-nginx service:
+   ```bash
+   kubectl annotate svc ingress-nginx-controller -n ingress-nginx \
+     service.beta.kubernetes.io/azure-load-balancer-health-probe-request-path=/healthz \
+     --overwrite
+   ```
+   - Persist the same annotation in your ingress-nginx Helm values (Phase 2) so future reconciliations keep it.
 
 ### 9) Definition of done for Phase 3
 
