@@ -181,6 +181,34 @@ stages:
                 - script: |
                     set -euo pipefail
 
+                    USER_STATUS="$(curl -sS -o /dev/null -w "%{http_code}" \
+                      -H "Accept: application/vnd.github+json" \
+                      -H "Authorization: Bearer $GITHUB_TOKEN" \
+                      https://api.github.com/user)"
+                    if [ "$USER_STATUS" != "200" ]; then
+                      echo "GitHub token check failed on /user (HTTP $USER_STATUS)."
+                      echo "Ensure GITHUB_TOKEN is valid and authorized for this org/repo."
+                      exit 1
+                    fi
+
+                    REPO_STATUS="$(curl -sS -o /dev/null -w "%{http_code}" \
+                      -H "Accept: application/vnd.github+json" \
+                      -H "Authorization: Bearer $GITHUB_TOKEN" \
+                      https://api.github.com/repos/${{ parameters.githubRepository }})"
+                    if [ "$REPO_STATUS" != "200" ]; then
+                      echo "GitHub token cannot access repository ${{ parameters.githubRepository }} (HTTP $REPO_STATUS)."
+                      echo "Ensure token has repository and pull request permissions."
+                      exit 1
+                    fi
+
+                    echo "GitHub token pre-check passed."
+                  displayName: Validate GitHub token access
+                  env:
+                    GITHUB_TOKEN: $(GITHUB_TOKEN)
+
+                - script: |
+                    set -euo pipefail
+
                     if git diff --quiet -- "${{ parameters.targetValuesFile }}"; then
                       echo "No change detected in ${{ parameters.targetValuesFile }}."
                       exit 0
