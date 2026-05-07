@@ -6,7 +6,7 @@ pool:
 
 parameters:
   - name: digest
-    displayName: Digest to promote (optional, ex: sha256:abcd...)
+    displayName: "Digest to promote (optional, ex: sha256:abcd...)"
     type: string
     default: ''
 
