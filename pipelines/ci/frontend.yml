@@ -27,7 +27,7 @@ variables:
   DEV_ACR_LOGIN_SERVER: acrboutiquedevweu.azurecr.io
   IMAGE_REPOSITORY: frontend
   GITOPS_VALUES_FILE: gitops/envs/dev/values-frontend.yaml
-  AZURE_SUBSCRIPTION_CONNECTION: dev-azure-service-connection
+  AZURE_SUBSCRIPTION_CONNECTION: promotion-azure-connection
   GITHUB_REPOSITORY: btilki/microservices-cicd-on-azure-with-argocd-and-observability
 
 stages:
