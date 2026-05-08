@@ -1,5 +1,10 @@
-# GitOps production changes — require reviewer(s) per architecture doc §16
-/gitops/envs/prod/ @biroltilki
+# Production GitOps — pair with branch protection on `main`:
+#   - Require 2 approving reviews
+#   - Require review from Code Owners
+#   - Require status checks + resolved conversations
+# See docs/gitops/prod-branch-protection.md for team setup (create teams before relying on this).
+/gitops/envs/prod/ @btilki/prod-gitops-approvers @btilki/prod-gitops-secondary
+/gitops/apps/prod/ @btilki/prod-gitops-approvers @btilki/prod-gitops-secondary
 
 # Infrastructure
 /infra/terraform/ @biroltilki
