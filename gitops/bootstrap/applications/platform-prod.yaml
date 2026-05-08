@@ -4,7 +4,7 @@ metadata:
   name: platform-prod
   namespace: argocd
 spec:
-  project: default
+  project: boutique-prod
   source:
     repoURL: https://github.com/btilki/microservices-cicd-on-azure-with-argocd-and-observability.git
     targetRevision: main
@@ -16,8 +16,5 @@ spec:
     server: https://kubernetes.default.svc
     namespace: prod
   syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
     syncOptions:
       - CreateNamespace=true
