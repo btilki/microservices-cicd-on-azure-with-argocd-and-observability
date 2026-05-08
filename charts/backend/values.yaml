@@ -28,3 +28,6 @@ resources: {}
 nodeSelector: {}
 
 tolerations: []
+
+# Optional: must match a cluster PriorityClass (e.g. boutique-prod-critical in prod).
+priorityClassName: ""

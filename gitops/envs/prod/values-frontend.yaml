@@ -15,3 +15,5 @@ nodeSelector:
   kubernetes.azure.com/mode: user
 
 tolerations: []
+
+priorityClassName: boutique-prod-critical
