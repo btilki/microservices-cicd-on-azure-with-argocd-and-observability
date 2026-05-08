@@ -273,13 +273,22 @@ After **manual Argo Sync** (§10) and rollout settles (~2–5 minutes):
 
 ### 12) Rollback procedure (must be rehearsed)
 
-If release is bad:
-1. Revert the prod GitOps PR (or create a new PR pinning previous digest).
-2. Merge rollback PR with expedited approvals.
-3. Manual Sync in Argo CD for prod app.
-4. Validate service recovery.
+**Rehearse at least once** (tabletop or non-prod dry run): identify a “bad” digest, practice opening the rollback PR, **Sync** in Argo CD, and **curl** checks — see [prod rollback](../runbooks/prod-rollback.md).
 
-Keep previous known-good digest documented for fast rollback.
+If release is bad:
+
+1. **Revert** the prod GitOps PR on `main`, **or** open a **new PR** that pins **`image.digest`** (and `repository` if wrong) in `gitops/envs/prod/values-<service>.yaml` to the **last known-good** value — from [prod known-good digests](../gitops/prod-known-good-digests.md), `git log`, or stage values after confirming stage is healthy.
+2. **Merge** the rollback PR using your **expedited** review path (still meet minimum reviewers per policy, or temporarily loosen policy only per org process — document who can approve).
+3. **Manual Sync** in Argo CD for the affected prod **`Application`**(s) (`*-prod` apps do not auto-sync).
+4. **Validate recovery:**
+   ```bash
+   kubectl rollout status deployment/<release>-<workload> -n prod
+   curl -sS -o /dev/null -w "%{http_code}\n" -I https://boutique.biroltilki.art/
+   curl -sS -o /dev/null -w "%{http_code}\n" -I https://api.boutique.biroltilki.art/
+   kubectl get pods -n prod
+   ```
+
+**Keep previous known-good digest documented** for fast rollback: maintain **`docs/gitops/prod-known-good-digests.md`** (or your wiki) after each good prod ship — **do not** rely only on memory or Git archaeology during an incident.
 
 ### 13) Definition of done for Phase 7
 
@@ -287,4 +296,4 @@ Keep previous known-good digest documented for fast rollback.
 - Prod deployment requires both PR approval and manual sync action.
 - Prod images are promoted digests from stage/prod pipeline (no rebuild).
 - Alert notifications are tested and received.
-- Runbooks exist and rollback flow is proven.
+- Runbooks exist and rollback flow is **rehearsed**; [known-good digests](../gitops/prod-known-good-digests.md) maintained after releases.

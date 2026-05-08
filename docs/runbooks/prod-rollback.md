@@ -15,7 +15,7 @@
    kubectl get pods -n prod
    kubectl get events -n prod --sort-by='.lastTimestamp' | tail -30
    ```
-3. **Image:** Compare current `image.digest` in `gitops/envs/prod/values-<service>.yaml` on `main` with last known good (previous commit or stage values).
+3. **Image:** Compare current `image.digest` in `gitops/envs/prod/values-<service>.yaml` on `main` with last known good — **[prod known-good digest table](../gitops/prod-known-good-digests.md)**, previous commit, or stage values if stage matches last good.
 4. **Argo:** In UI or CLI: app **sync status**, **health**, and **last sync** revision.
 
 ## Rollback / mitigation
