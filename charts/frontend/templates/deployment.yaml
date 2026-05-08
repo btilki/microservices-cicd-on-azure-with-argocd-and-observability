@@ -34,3 +34,11 @@ spec:
               name: http
           resources:
 {{ toYaml .Values.resources | indent 12 }}
+{{- with .Values.livenessProbe }}
+          livenessProbe:
+{{ toYaml . | indent 12 }}
+{{- end }}
+{{- with .Values.readinessProbe }}
+          readinessProbe:
+{{ toYaml . | indent 12 }}
+{{- end }}

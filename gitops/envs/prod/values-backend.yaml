@@ -2,6 +2,38 @@ image:
   repository: acrboutiqueprodweu.azurecr.io/backend
   digest: "sha256:801af4513ac121bfbd2da16ce4412d9800fd69ce13d7a0b35363b4e2f9dc97be"
 
+replicaCount: 3
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 320Mi
+  limits:
+    cpu: "1"
+    memory: 768Mi
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 20
+  periodSeconds: 15
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 3
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 2
+
 ingress:
   className: nginx
   host: api.boutique.biroltilki.art
@@ -10,7 +42,6 @@ ingress:
   tls:
     secretName: backend-prod-tls
 
-# Schedule workloads to prod node pool.
 nodeSelector:
   kubernetes.azure.com/mode: user
 

@@ -6,11 +6,31 @@ replicaCount: 2
 
 resources:
   requests:
-    cpu: 150m
-    memory: 192Mi
+    cpu: 200m
+    memory: 256Mi
   limits:
-    cpu: 500m
-    memory: 512Mi
+    cpu: 750m
+    memory: 640Mi
+
+livenessProbe:
+  tcpSocket:
+    port: http
+  initialDelaySeconds: 15
+  periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 3
+
+readinessProbe:
+  tcpSocket:
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 2
+  failureThreshold: 3
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
 
 service:
   port: 6379
@@ -20,3 +40,5 @@ nodeSelector:
   kubernetes.azure.com/mode: user
 
 tolerations: []
+
+priorityClassName: boutique-prod-critical
