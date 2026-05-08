@@ -241,17 +241,35 @@ kubectl get ingress -n prod
 
 ### 11) Post-release verification
 
-1. External checks:
+After **manual Argo Sync** (§10) and rollout settles (~2–5 minutes):
+
+1. **External HTTP checks** (expect **200** / **301** / **302**, not **5xx**):
    ```bash
-   curl -I https://<prod-host>/
+   curl -sS -o /dev/null -w "frontend HTTP %{http_code}\n" -I https://boutique.biroltilki.art/
+   curl -sS -o /dev/null -w "backend HTTP %{http_code}\n" -I https://api.boutique.biroltilki.art/
    ```
-2. App journey test in browser.
-3. Observe dashboards/alerts for 15-30 minutes.
-4. Confirm no unexpected restart spikes:
+   Optional TLS sanity:
+   ```bash
+   curl -I https://boutique.biroltilki.art/ 2>&1 | head -20
+   ```
+
+2. **App journey in browser:** open **https://boutique.biroltilki.art/** — load main flows (browse, cart if applicable). Watch devtools **Network** for failed calls to **api.*** host.
+
+3. **Dashboards / alerts (15–30 minutes):** Grafana (e.g. **kube-prometheus-stack**), **Alertmanager** / on-call channel — no new **5xx** bursts, **crash loop**, or **cert** alerts tied to this release. Cross-check [ingress 5xx runbook](../runbooks/ingress-5xx-triage.md) if needed.
+
+4. **Cluster stability — no restart spikes:**
    ```bash
    kubectl get pods -n prod
+   kubectl get pods -n prod -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{range .status.containerStatuses[*]}{.restartCount}{" "}{end}{"\n"}{end}' | head -30
+   ```
+   Compare **RESTARTS** in `kubectl get pods` to your pre-release baseline; investigate any pod that keeps growing during the observation window.
+   **CPU/memory** (requires **metrics-server**):
+   ```bash
    kubectl top pods -n prod
    ```
+   If `kubectl top` errors, install or repair **metrics-server** on the cluster; use **Azure Monitor** / **Grafana** node-exporter views as fallback.
+
+5. **Optional:** `kubectl get certificate -n prod` — **Ready=True** for prod TLS objects.
 
 ### 12) Rollback procedure (must be rehearsed)
 
