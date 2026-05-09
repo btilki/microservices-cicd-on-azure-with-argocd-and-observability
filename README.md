@@ -61,6 +61,27 @@ Current repository pipelines are aligned to the following Azure DevOps names:
 
 See `pipelines/README.md` for pipeline-specific details.
 
+## Operations quickstart
+
+- Argo CD UI: `https://argocd.biroltilki.art`
+- Grafana UI: `https://grafana.biroltilki.art`
+- Runbooks index: [docs/runbooks/README.md](docs/runbooks/README.md)
+- Core runbooks:
+  - [Prod rollback](docs/runbooks/prod-rollback.md)
+  - [Ingress 5xx triage](docs/runbooks/ingress-5xx-triage.md)
+  - [Certificate renewal/expiry](docs/runbooks/certificate-renewal-expiry.md)
+  - [Failing Argo CD sync in prod](docs/runbooks/failing-argocd-sync-prod.md)
+- Promotion pipelines:
+  - `pipelines/promote/promote-to-stage.yml`
+  - `pipelines/promote/promote-to-stage-backend.yml`
+  - `pipelines/promote/promote-to-prod.yml`
+  - `pipelines/promote/promote-to-prod-backend.yml`
+- Environment hosts:
+  - Dev storefront: `https://dev.boutique.biroltilki.art`
+  - Stage storefront: `https://stage.boutique.biroltilki.art`
+  - Prod storefront: `https://boutique.biroltilki.art`
+  - Prod API: `https://api.boutique.biroltilki.art`
+
 ## Next steps
 
 1. Create the **Git** remote and **Azure DevOps** project; push this repo (see `pipelines/README.md`).
