@@ -173,6 +173,8 @@ Quick reference table: `pipelines/README.md` → **Promotion permissions control
 
 - PR not created:
   - validate `GITHUB_TOKEN` permissions and pipeline variable references.
+- **`Missing role 'AcrPull' on source ACR`** (for example `acrboutiquedevweu` when running `promote-to-stage`):
+  - the app behind **`promotion-azure-connection`** needs **AcrPull** on the **source** registry scope. In this repo, set `promotion_service_principal_object_id` to that app’s **object ID** (Azure Portal → Enterprise application → Object ID, or DevOps → service connection → **Manage Service Principal**) in `terraform.tfvars` for **dev**, **stage**, and **prod** envs, then `terraform apply` each (dev grants **AcrPull** on dev ACR; stage grants **AcrPull**/**AcrPush** on stage ACR plus **Reader** on both RGs; prod grants **AcrPush** on prod ACR plus **Reader** on both RGs). Alternatively, assign the same roles once in the portal / CLI at the listed scopes.
 - **`Missing role 'Reader' on resource group`** during “Validate service principal role assignments”:
   - grant **Reader** on each RG listed in `requiredReaderResourceGroups` in the promote wrapper (defaults include `rg-boutique-stage-weu`, `rg-boutique-prod-weu`).
 - **`Digest ... is still a placeholder` / invalid digest format**:

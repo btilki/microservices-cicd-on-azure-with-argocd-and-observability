@@ -30,15 +30,22 @@ resource "azurerm_resource_group" "env" {
 module "acr" {
   source = "../../modules/acr"
 
-  location                  = var.location
-  tags                      = local.tags
-  resource_group_name       = azurerm_resource_group.env.name
-  registry_name             = "acrboutiquedevweu"
-  pe_subnet_id              = data.terraform_remote_state.shared.outputs.pe_subnet_id
-  private_dns_zone_acr_id   = data.terraform_remote_state.shared.outputs.private_dns_zone_acr_id
-  kubelet_object_id         = data.terraform_remote_state.shared.outputs.kubelet_identity_object_id
+  location                = var.location
+  tags                    = local.tags
+  resource_group_name     = azurerm_resource_group.env.name
+  registry_name           = "acrboutiquedevweu"
+  pe_subnet_id            = data.terraform_remote_state.shared.outputs.pe_subnet_id
+  private_dns_zone_acr_id = data.terraform_remote_state.shared.outputs.private_dns_zone_acr_id
+  kubelet_object_id       = data.terraform_remote_state.shared.outputs.kubelet_identity_object_id
   # Temporarily enabled for Microsoft-hosted Azure DevOps CI access.
   public_network_access_enabled = true
+}
+
+resource "azurerm_role_assignment" "promotion_dev_acr_pull" {
+  count                = var.promotion_service_principal_object_id != "" ? 1 : 0
+  scope                = module.acr.registry_id
+  role_definition_name = "AcrPull"
+  principal_id         = var.promotion_service_principal_object_id
 }
 
 module "keyvault" {

@@ -35,3 +35,9 @@ variable "shared_state_key" {
   type    = string
   default = "boutique-shared.tfstate"
 }
+
+variable "promotion_service_principal_object_id" {
+  type        = string
+  default     = ""
+  description = "Optional. Promotion pipeline SP object ID: AcrPush on prod ACR; Reader on stage+prod RGs (promote pre-checks)."
+}

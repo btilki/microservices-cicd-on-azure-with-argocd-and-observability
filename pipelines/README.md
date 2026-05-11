@@ -33,3 +33,5 @@ Promotion pipelines enforce a pre-check (`pipelines/templates/promote-image.yml`
 | `promote/promote-to-prod.yml` | `acrboutiquestageweu` — **AcrPull** | `acrboutiqueprodweu` — **AcrPush** | same as stage row |
 
 To change scopes, edit `requiredSourceAcrRoles`, `requiredTargetAcrRoles`, and `requiredReaderResourceGroups` on each wrapper. Details: `docs/implementation/phase-04-promotion-pipeline.md`.
+
+If the first Azure CLI step fails with **`Missing role 'AcrPull' on source ACR`**, grant that role to the **promotion** service principal on the dev registry (and the other roles in the table above on stage/prod ACRs and RGs). Terraform: optional variable `promotion_service_principal_object_id` in `infra/terraform/envs/{dev,stage,prod}/`.
