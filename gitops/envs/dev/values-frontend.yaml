@@ -1,9 +1,9 @@
 image:
   repository: acrboutiquedevweu.azurecr.io/frontend
-  digest: "sha256:70ab9b76ff3f396a0f3468842a6d32f085b07a1be233857123b229fdce50992c"
+  digest: "sha256:c9d8927c1b646afe71888dfea9ba57bf4fbf53e2a273e8817d3d53529346c513"
 
 googleDemo:
-  enabled: true
+  enabled: false
   externalName: frontend.google-boutique.svc.cluster.local
 
 ingress:

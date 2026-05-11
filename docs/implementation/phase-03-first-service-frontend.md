@@ -256,6 +256,33 @@ Use this checklist if your setup matches this repository and Azure subscription.
    ```
    - Persist the same annotation in your ingress-nginx Helm values (Phase 2) so future reconciliations keep it.
 
+9. **`frontend-dev` can show `Synced/Healthy` but still return HTTP 503**
+   - In this repo, `gitops/envs/dev/values-frontend.yaml` controls `googleDemo.enabled`.
+   - If `googleDemo.enabled: true`, chart renders an `ExternalName` service to `frontend.google-boutique.svc.cluster.local` (no frontend Deployment), which can return `503` when that target is unavailable.
+   - For Phase 3 standalone frontend deployment, set:
+     - `googleDemo.enabled: false`
+     - `image.repository: acrboutiquedevweu.azurecr.io/frontend`
+     - `image.digest: sha256:<real-pushed-digest>`
+   - Then merge GitOps change and re-sync Argo.
+
+10. **Ingress LoadBalancer stuck in `<pending>` with Azure 403 on public IP**
+    - Symptom from `kubectl describe svc -n ingress-nginx ingress-nginx-controller`:
+      - `AuthorizationFailed` on `Microsoft.Network/publicIPAddresses/read`.
+    - Fix:
+      - grant `Network Contributor` to AKS control-plane identity (`az aks show ... --query identity.principalId`) on `rg-boutique-shared-weu` (and/or PIP scope).
+      - if still blocked, also grant `Network Contributor` to kubelet identity (`identityProfile.kubeletidentity.objectId`) on same scope.
+    - Re-check until `EXTERNAL-IP` is assigned.
+
+11. **Image pulls fail in dev with 401/NotFound**
+    - Ensure AKS is attached to dev ACR:
+      ```bash
+      az aks update -g rg-boutique-shared-weu -n aks-boutique-weu --attach-acr acrboutiquedevweu
+      ```
+    - Ensure the exact digest exists in ACR:
+      ```bash
+      az acr manifest list-metadata --registry acrboutiquedevweu --name frontend -o table
+      ```
+
 ### 9) Definition of done for Phase 3
 
 - `frontend` is managed by Argo CD from GitOps manifests.
