@@ -4,9 +4,7 @@
 
 **Goal:** Build → dev ACR → GitOps digest → Argo CD → HTTPS on dev hostname.
 
----
-
-## Implementation
+## Process (brief)
 
 > **Use:** Editor/IDE, **Git** (branches, PRs), **Helm**, **Azure DevOps Pipelines** (or GitHub Actions), **Azure Portal/CLI** (ACR, service connections), **Argo CD UI**, browser for HTTPS test.
 
@@ -24,13 +22,11 @@
 
 7. **TLS** — Ingress host matches cert (e.g. `dev.boutique.<domain>`); fix DNS/cert-manager if browser shows cert errors.
 
----
-
 ## Detailed step-by-step guide (practical)
 
 Use this as a concrete path from source code to a live HTTPS endpoint in `dev`.
 
-### 0) Pre-checks (do once)
+### 0) Pre-checks (run once)
 
 1. Confirm these are working:
    ```bash
@@ -115,6 +111,16 @@ Use this as a concrete path from source code to a live HTTPS endpoint in `dev`.
 3. Configure Azure DevOps service connection:
    - rights to push to dev ACR
    - repo permissions to open PR
+4. Azure checks before first pipeline run:
+   ```bash
+   az account show -o table
+   az acr show -n acrboutiquedevweu -o table
+   az acr repository list -n acrboutiquedevweu -o table
+   ```
+5. GitHub token checks for PR automation:
+   - store token in Azure DevOps secret variable `GITHUB_TOKEN`
+   - token needs `repo` scope for branch push + pull request creation
+   - protect variable group permissions so only trusted pipelines can use it
 
 ### 5) Validate pipeline output
 
@@ -127,6 +133,10 @@ After pipeline runs, confirm:
 2. GitOps PR contains digest update:
    - `image.digest: sha256:...`
 3. Merge GitOps PR to `main`.
+4. Optional verification of digest in ACR:
+   ```bash
+   az acr manifest list-metadata --registry acrboutiquedevweu --name frontend -o table
+   ```
 
 ### 6) Argo CD deployment verification
 

@@ -4,9 +4,7 @@
 
 **Goal:** Prod GitOps, **manual** Argo CD sync for prod, alerts, short runbooks.
 
----
-
-## Implementation
+## Process (brief)
 
 > **Use:** **Argo CD** (projects, sync policy manual, RBAC), **Git** (strict PR rules for `gitops/envs/prod/**`), **Helm values**, **Alertmanager** config (YAML + reload), **Grafana** UI optional, `docs/runbooks/`.
 
@@ -20,11 +18,16 @@
 
 5. **Promote-to-prod** — Run pipeline with approvals; merge prod GitOps PR; **operator clicks Sync** in Argo CD for prod.
 
----
-
 ## Detailed step-by-step guide (practical)
 
 This phase creates a controlled production path with human approvals and explicit sync actions.
+
+Section map for this phase:
+- `0-1`: prerequisites and Azure runtime readiness
+- `2-5`: GitHub/GitOps and Argo CD project/app setup
+- `6-9`: GitHub protections and Azure DevOps promotion flow
+- `10-11`: Argo sync and Kubernetes/runtime verification
+- `12`: rollback procedure and operations readiness
 
 ### 0) Pre-checks before enabling prod
 

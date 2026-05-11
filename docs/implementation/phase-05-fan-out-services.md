@@ -17,29 +17,68 @@ For **owned** services, repeat the frontend pattern: chart → env values → Ar
 
 ## Step-by-step
 
-1. Define rollout order for **owned** services (recommended):
+### Prerequisites
+
+1. Confirm Phase 4 promotion flow works for `frontend`.
+2. Confirm `dev` namespace and Argo root app are healthy:
+   ```bash
+   kubectl get ns dev
+   kubectl get applications -n argocd
+   ```
+
+### Azure
+
+3. Confirm dev ACR is reachable and contains existing promoted images:
+   ```bash
+   az acr list -o table
+   az acr repository list --name acrboutiquedevweu -o table
+   ```
+
+### Azure DevOps
+
+4. For each **owned** service, create or verify CI pipeline:
+   - `pipelines/ci/<service>.yml` (or shared template reference)
+   - stages: build -> scan -> push dev ACR -> update GitOps digest -> open PR
+5. Validate service connections and secrets:
+   - ACR push permission on dev ACR
+   - `GITHUB_TOKEN` (or equivalent) for PR creation
+
+### GitHub / GitOps
+
+6. Define rollout order for **owned** services (recommended):
    - `redis-cart`
    - `productcatalogservice`, `currencyservice`, `cartservice`
-2. Deploy **upstream** slice when needed for full journeys:
+7. Deploy **upstream** slice when needed for full journeys:
    - `checkoutservice`, `emailservice`, `paymentservice`, `shippingservice`, `recommendationservice`
    - `loadgenerator` (non-prod only)
-   - omit `adservice` in v1 unless you choose to add it from upstream
-3. For each **owned** service, use/update existing repo structure:
+   - omit `adservice` in v1 unless needed
+8. For each **owned** service, maintain repo structure:
    - Helm chart: `charts/<service>/`
-   - Argo app manifest: `gitops/apps/dev/<service>-dev.yaml` (e.g. `cartservice-dev.yaml`, `metadata.name: cartservice-dev`)
-   - Dev values: `gitops/envs/dev/values-<service>.yaml`
-   - CI pipeline: `pipelines/ci/<service>.yml` (or shared template)
-4. Ensure each **owned** service is registered in `gitops/bootstrap/applications/`.
-5. Run CI per **owned** service and let CI open GitHub digest PRs.
-6. Review and merge PRs in small batches (2-3 services), then verify:
-   ```bash
-   kubectl get applications -n argocd
-   kubectl get pods -n dev
-   kubectl get svc -n dev
-   ```
-7. Validate service-to-service traffic with a debug pod when needed (including calls into **upstream** namespace services if used).
-8. Keep only `frontend` (or your ingress entrypoint) exposed with Ingress for public traffic in this phase.
-9. Keep **`loadgenerator`** on upstream images and **disabled in prod** (dev/stage only).
+   - Argo app: `gitops/apps/dev/<service>-dev.yaml`
+   - values: `gitops/envs/dev/values-<service>.yaml`
+9. Ensure each **owned** service is registered in `gitops/bootstrap/applications/`.
+10. Run CI and review/merge digest PRs in small batches (2-3 services per wave).
+
+### Argo CD / Kubernetes validation
+
+11. After each PR batch merge, verify deployment health:
+    ```bash
+    kubectl get applications -n argocd
+    kubectl get pods -n dev
+    kubectl get svc -n dev
+    ```
+12. Validate service-to-service traffic with a debug pod when needed.
+13. Keep only `frontend` (or ingress entrypoint) exposed publicly in this phase.
+14. Keep `loadgenerator` on upstream images and disabled in prod.
+
+### Troubleshooting
+
+- PR not created:
+  - check Azure DevOps token permissions and branch protection requirements.
+- Pods fail with image pull errors:
+  - verify repository path and digest in `gitops/envs/dev/values-<service>.yaml`.
+- Argo app stays OutOfSync:
+  - verify chart path and values file reference in `gitops/apps/dev/<service>-dev.yaml`.
 
 ## Done checklist
 
