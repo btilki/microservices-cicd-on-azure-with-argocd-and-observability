@@ -24,12 +24,7 @@ ingress:
   tls:
     secretName: frontend-stage-tls
 
-# Schedule workloads to stage node pool.
 nodeSelector:
   kubernetes.azure.com/mode: user
 
-tolerations:
-  - key: env
-    operator: Equal
-    value: stage
-    effect: NoSchedule
+tolerations: []

@@ -80,6 +80,7 @@ Root Application **`boutique-root`** syncs `gitops/bootstrap/applications/`; you
 
 ### Troubleshooting
 
+- **Ingress works but nginx `503` / `kubectl get pods -n stage` empty for frontend:** Helm **releaseName** is `frontend-stage`, so the **Service** is **`frontend-stage-frontend`** (not `frontend`). Check endpoints: `kubectl get endpoints -n stage frontend-stage-frontend`. If **Deployments** exist but **0 pods**, open `kubectl describe deploy -n stage frontend-stage-frontend` — often **Pending** because values require toleration **`env=stage:NoSchedule`** while the cluster has **no** `npstg` pool. Either enable workload node pools in Terraform or set **`tolerations: []`** in `gitops/envs/stage/values-frontend.yaml` (this repo ships that relaxation for the shared **user** pool).
 - **PR merged but no rollout / Unknown project `boutique-stage`:** ensure **`apps-stage`** is synced and **`project-boutique-stage.yaml`** applied (check `AppProject` exists). Sync **`apps-stage`** again after fixing.
 - **ImagePullBackOff:** confirm image **repository** is **stage** ACR, digest exists in that ACR, and **`az aks update ... --attach-acr acrboutiquestageweu`** (or kubelet **AcrPull** on stage registry).
 - **HTTPS 503 while Argo shows Healthy:** often **`googleDemo.enabled: true`** without upstream demo `Service` — set **`false`** in `gitops/envs/stage/values-frontend.yaml` and ensure **Service** targets the frontend **Deployment** (see Phase 3 troubleshooting).
