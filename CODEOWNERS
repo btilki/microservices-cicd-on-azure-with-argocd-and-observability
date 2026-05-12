@@ -1,0 +1,10 @@
+# Production GitOps — pair with branch protection on `main`:
+#   - Require 2 approving reviews
+#   - Require review from Code Owners
+#   - Require status checks + resolved conversations
+# See docs/gitops/prod-branch-protection.md for team setup (create teams before relying on this).
+/gitops/envs/prod/ @YOUR_ORG/prod-gitops-approvers @YOUR_ORG/prod-gitops-secondary
+/gitops/apps/prod/ @YOUR_ORG/prod-gitops-approvers @YOUR_ORG/prod-gitops-secondary
+
+# Infrastructure
+/infra/terraform/ @YOUR_GITHUB_USERNAME
