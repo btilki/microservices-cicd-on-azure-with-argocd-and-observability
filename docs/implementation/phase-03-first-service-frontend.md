@@ -121,6 +121,7 @@ Use this as a concrete path from source code to a live HTTPS endpoint in `dev`.
    - store token in Azure DevOps secret variable `GITHUB_TOKEN`
    - token needs `repo` scope for branch push + pull request creation
    - protect variable group permissions so only trusted pipelines can use it
+6. If you **renamed this repo on GitHub**, retarget each Azure DevOps pipeline at the new **control repository** (repository picker when editing the pipeline). See [pipelines/README.md](../../pipelines/README.md) → **Azure DevOps pipeline source after a GitHub rename**.
 
 ### 5) Validate pipeline output
 

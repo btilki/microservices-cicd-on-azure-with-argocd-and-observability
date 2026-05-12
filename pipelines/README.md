@@ -23,7 +23,26 @@
 
 See the repository [README.md](../README.md) (system overview) and [docs/implementation/phase-03-first-service-frontend.md](../docs/implementation/phase-03-first-service-frontend.md).
 
-## Promotion permissions control
+## Azure DevOps pipeline source after a GitHub rename
+
+Each YAML pipeline stores which **GitHub repository** it checks out for `checkout: self` — Azure DevOps documentation and UI sometimes call this the **control repository** or **get sources** location. **Renaming the repo on GitHub does not automatically retarget existing pipelines.**
+
+Do the following for **every** registered pipeline (`pipelines/ci/*.yml`, `pipelines/promote/*.yml`, optional root `azure-pipelines.yml`):
+
+1. **GitHub — Azure Pipelines app access**  
+   On GitHub: **Settings** → **Integrations** (or **Applications** under org/user) → **Installed GitHub Apps** → **Azure Pipelines**.  
+   Under **Repository access**, ensure the renamed repository is included (or use “All repositories” while testing). Grant access if GitHub treats the rename as needing re-authorization.
+
+2. **Azure DevOps — retarget the pipeline**  
+   **Pipelines** → select the pipeline → **Edit**.  
+   At the top of the YAML editor, confirm **Repository** and **Branch** (`main`) match the new GitHub repo (`btilki/microservice-apps-on-Azure-using-Terraform-Helm-GitOps-and-observability` or your fork).  
+   If the header still shows the old repository: use **⋮** (next to the pipeline name) → **Settings** / **Triggers** (wording varies by UI version) and change the **GitHub connection** + **repository** selection, or **Disconnect** the old repo link and **Choose repository** again from the GitHub picker.
+
+3. **Save** the pipeline definition and run **Run pipeline** once to confirm checkout and variable groups still resolve.
+
+4. **Branch protection (GitHub)** — If **required status checks** list Azure Pipelines by job name, confirm new runs from the retargeted pipelines still report the same check names; update the branch rule if job or pipeline names changed.
+
+If you use **only Azure Repos** (not GitHub) as the pipeline source, mirror this repo into Azure Repos instead and point pipelines at that mirror; the same “each pipeline has one control repository” idea applies.
 
 Promotion pipelines enforce a pre-check (`pipelines/templates/promote-image.yml`) on the service principal used by **`promotion-azure-connection`** before `az acr import` and the GitHub PR step.
 

@@ -120,6 +120,8 @@ Use this sequence for **`frontend`** first, then the same pipelines with **`serv
 
 ![alt text](./../diagrams/azure-devops-pipelines-environments-promote-stage-prod.png)
 
+4. **Pipeline source (control repository)** — Each pipeline is tied to the GitHub repo chosen when it was created (`checkout: self`). If you renamed the GitHub repository, open **each** CI and promote pipeline → **Edit** and confirm the **repository** and **branch** in the header match the new GitHub URL (see [pipelines/README.md](../../pipelines/README.md) → **Azure DevOps pipeline source after a GitHub rename**).
+
 ### 3) Review pipeline YAML layout in repo
 
 1. Shared promotion logic:
