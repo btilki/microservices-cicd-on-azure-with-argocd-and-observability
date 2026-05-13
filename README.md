@@ -18,6 +18,14 @@ Mono-repo for Google’s [microservices-demo](https://github.com/GoogleCloudPlat
 
 **End-to-end flow:** Developer → GitHub → Azure DevOps (build/scan → dev ACR; promotion pipelines import digest to stage/prod ACR and open GitOps PRs) → merge → Argo CD reconciles cluster state from Git.
 
+## What This Project Demonstrates
+
+- End-to-end platform delivery on Azure: Terraform foundation, AKS runtime, GitOps app-of-apps, and day-2 runbooks in one repository.
+- Controlled software promotion: build once, promote by immutable digest across dev/stage/prod with approval gates and role pre-checks.
+- Practical Kubernetes operations: namespace isolation, quotas, baseline network policies, ingress TLS, and cert-manager DNS automation.
+- Operational readiness: smoke checks, release verification checklist, incident runbooks, and monitoring/alerting via kube-prometheus-stack.
+- Interview-friendly execution trace: phase-by-phase implementation docs plus screenshots for Argo CD, Azure DevOps, and Grafana validation.
+
 ### Diagrams (PNG exports)
 
 - [Platform overview](docs/diagrams/00-platform-overview.png)
